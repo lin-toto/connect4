@@ -64,8 +64,8 @@ Node * MCTSPlayer::bestChild(Node *node) const {
 
     double maxWeight = 0;
     Node *bestChild = nullptr;
-    for (auto child = node->children.begin(); child != node->children.end(); child++) {
-        Node *childNode = child->second.get();
+    for (auto &child : node->children) {
+        Node *childNode = child.second.get();
         double weight = childNode->reward / childNode->accessCount
                 + CP * sqrt(2 * log(node->accessCount) / childNode->accessCount);
 
