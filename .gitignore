@@ -7,6 +7,7 @@ CMakeFiles
 cmake_install.cmake
 MakeFile
 connect4.cbp
+connect4
 
 # User-specific stuff
 .idea/**/workspace.xml

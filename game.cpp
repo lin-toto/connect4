@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game(int X, int Y, int N) noexcept: board(X, Y), connectN(N) {}
+Game::Game(int X, int Y, int N) noexcept: board(X, Y), connectN(N), columnMaxY(X) {}
 
 const Board & Game::getBoard() const noexcept {
     return board;
@@ -20,6 +20,7 @@ bool Game::tryPlace(const Pos &pos, Chess chess) noexcept {
         } catch (PosOutOfBoundsException &e) {}
 
         board.set(pos, chess);
+        columnMaxY[pos.X] = pos.Y + 1;
     } catch (PosOutOfBoundsException &e) {
         return false;
     }
@@ -32,13 +33,25 @@ void Game::revertMove(const Pos &pos) {
     if (current == Empty)
         throw std::runtime_error("Current position has no chess placed");
 
-    try {
-        Chess up = board.get(pos + Pos{0, 1});
-        if (up != Empty)
-            throw std::runtime_error("Above current position has chess placed, board would become invalid");
-    } catch (PosOutOfBoundsException &e) {}
+    if (columnMaxY[pos.X] != pos.Y + 1)
+        throw std::runtime_error("Above current position has chess placed, board would become invalid");
 
     board.set(pos, Empty);
+    columnMaxY[pos.X] = pos.Y;
+}
+
+std::unordered_set<Pos> Game::getAvailableMoves() const noexcept {
+    int X, Y;
+    std::unordered_set<Pos> result;
+
+    std::tie(X, Y) = board.getSize();
+    for (int x = 0; x < X; x++) {
+        if (columnMaxY[x] < Y) {
+            result.insert(Pos{x, columnMaxY[x]});
+        }
+    }
+
+    return result;
 }
 
 std::optional<Chess> Game::checkWin(const Pos &lastPlacedPosition) const {

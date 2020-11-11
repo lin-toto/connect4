@@ -16,6 +16,7 @@ struct Pos {
     int X, Y;
     Pos operator+(const Pos &other) const;
     Pos & operator+=(const Pos &other);
+    bool operator==(const Pos &other) const;
 };
 
 template <>

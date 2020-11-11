@@ -5,11 +5,12 @@
 
 class BasePlayer {
 public:
-    explicit BasePlayer(const Game &currentGame) : game(currentGame) {};
-    virtual Pos requestNextMove(Pos lastOpponentMovePosition) = 0;
+    explicit BasePlayer(const Game &currentGame, Chess myChess) : game(currentGame), chess(myChess) {};
+    virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) = 0;
 
 protected:
     const Game &game;
+    Chess chess;
 };
 
 #endif //CONNECT4_PLAYER_H

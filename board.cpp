@@ -10,6 +10,10 @@ Pos & Pos::operator+=(const Pos &other) {
     return *this;
 }
 
+bool Pos::operator==(const Pos &other) const {
+    return X == other.X && Y == other.Y;
+}
+
 std::size_t std::hash<Pos>::operator()(const Pos &pos) const {
     return std::hash<int>()(pos.X) ^ (std::hash<int>()(pos.Y) << 1); // NOLINT
 }

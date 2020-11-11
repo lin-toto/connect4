@@ -8,9 +8,12 @@
 #include <chrono>
 #include <optional>
 #include <cmath>
+#include <limits>
+#include <random>
 
 struct Node {
-    bool isTerminal = false;
+    std::optional<Chess> winner = std::nullopt;
+    bool isCurrentPlayerMove = false;
     std::optional<Pos> currentMove = std::nullopt;
     double reward = 0;
     int accessCount = 1;
@@ -22,30 +25,33 @@ struct Node {
     explicit Node(Pos move): currentMove(move) {}
     void addChild(Node *child);
     [[nodiscard]] Node * getChild(const Pos &move) const noexcept;
+    [[nodiscard]] Node * getBestChild(double CP) const noexcept;
 };
 
-class MCTSPlayer: virtual public BasePlayer {
+class MCTSPlayer: public BasePlayer {
 public:
-    MCTSPlayer(const Game &currentGame, int timeBudget);
-    virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition);
+    MCTSPlayer(const Game &currentGame, Chess myChess, int timeBudget);
+    Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) override;
 private:
-    Game simulationGame;
     std::unique_ptr<Node> treeRoot;
 
-    std::chrono::microseconds timeBudgetPerStep;
+    std::chrono::milliseconds timeBudgetPerStep;
     std::chrono::time_point<std::chrono::system_clock> startTime;
 
-    const double CP = 0.707;
+    std::default_random_engine randomEngine;
+
+    const double CP = 0.707, Gamma = 0.6;
+
+    [[nodiscard]] constexpr Chess getMoveChessType(bool isCurrentPlayer) const noexcept;
 
     void makeNewRoot(Node *node);
-    Node * treePolicy();
-    Node * expand(Node *node);
-    Node * bestChild(Node *node) const;
-    double defaultPolicy();
+    Node * treePolicy(Game &game);
+    double defaultPolicy(Node *node, Game simulationGame);
     void backup(Node *node, double reward) noexcept;
 
     void startTimer() noexcept;
     [[nodiscard]] bool checkWithinTimeLimit() const noexcept;
+    [[nodiscard]] int getRandomNumber(int lower, int upper) noexcept;
 };
 
 #endif //CONNECT4_MCTS_PLAYER_H
