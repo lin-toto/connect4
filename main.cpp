@@ -32,7 +32,7 @@ int main() {
 
     Game game(X, Y, N);
     int x, y;
-    int currentPlayer = 2;
+    int currentPlayer = 1;
     std::optional<Chess> winner;
 
     auto ai = MCTSPlayer(game, Player2, 3000);
