@@ -10,6 +10,10 @@ Pos & Pos::operator+=(const Pos &other) {
     return *this;
 }
 
+std::size_t std::hash<Pos>::operator()(const Pos &pos) const {
+    return std::hash<int>()(pos.X) ^ (std::hash<int>()(pos.Y) << 1); // NOLINT
+}
+
 PosOutOfBoundsException::PosOutOfBoundsException(Pos pos) noexcept: position(pos) {}
 constexpr Pos PosOutOfBoundsException::getPos() const noexcept {
     return position;
@@ -40,6 +44,10 @@ constexpr int Board::getOffset(const Pos &pos) const {
 
 Chess Board::get(const Pos &pos) const {
     return board[getOffset(pos)];
+}
+
+std::pair<int, int> Board::getSize() const {
+    return std::make_pair(sizeX, sizeY);
 }
 
 void Board::set(const Pos &pos, Chess chess) {

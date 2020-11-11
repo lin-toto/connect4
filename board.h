@@ -3,6 +3,8 @@
 
 #include <cstring>
 #include <exception>
+#include <functional>
+#include <utility>
 
 enum Chess {
     Empty = 0,
@@ -14,6 +16,11 @@ struct Pos {
     int X, Y;
     Pos operator+(const Pos &other) const;
     Pos & operator+=(const Pos &other);
+};
+
+template <>
+struct std::hash<Pos> {
+    std::size_t operator()(const Pos &pos) const;
 };
 
 class PosOutOfBoundsException : public std::exception {
@@ -31,6 +38,7 @@ public:
     Board(const Board &other) noexcept;
     ~Board() noexcept;
     [[nodiscard]] Chess get(const Pos &pos) const;
+    [[nodiscard]] std::pair<int, int> getSize() const;
     friend class Game;
 private:
     int sizeX, sizeY;

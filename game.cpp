@@ -27,6 +27,20 @@ bool Game::tryPlace(const Pos &pos, Chess chess) noexcept {
     return true;
 }
 
+void Game::revertMove(const Pos &pos) {
+    Chess current = board.get(pos);
+    if (current == Empty)
+        throw std::runtime_error("Current position has no chess placed");
+
+    try {
+        Chess up = board.get(pos + Pos{0, 1});
+        if (up != Empty)
+            throw std::runtime_error("Above current position has chess placed, board would become invalid");
+    } catch (PosOutOfBoundsException &e) {}
+
+    board.set(pos, Empty);
+}
+
 std::optional<Chess> Game::checkWin(const Pos &lastPlacedPosition) const {
     if (auto winner = checkWinInternal(lastPlacedPosition, Pos{0, -1}, std::nullopt)) return winner;
     if (auto winner = checkWinInternal(lastPlacedPosition, Pos{1, 0}, Pos{-1, 0})) return winner;
