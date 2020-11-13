@@ -40,7 +40,7 @@ private:
 
     std::default_random_engine randomEngine;
 
-    const double CP = 0.707, Gamma = 0.6;
+    const double CP = 0.5, Gamma = 0.8, randomExploreFactor = 0.2;
 
     [[nodiscard]] constexpr Chess getMoveChessType(bool isCurrentPlayer) const noexcept;
 

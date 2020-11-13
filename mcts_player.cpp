@@ -64,7 +64,7 @@ Pos MCTSPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
         backup(node, reward);
     }
 
-    Node *bestChild = treeRoot->getBestChild(CP);
+    Node *bestChild = treeRoot->getBestChild(-CP);
     auto move = bestChild->currentMove;
     if (!move.has_value())
         throw std::runtime_error("Current move must be specified");
@@ -98,21 +98,18 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
 
             return child;
         } else {
-            if (node->isCurrentPlayerMove) {
-                if (node->children.empty())
-                    return node;
+            if (node->children.empty())
+                return node;
 
-                 Node * randomChild = std::next(
+            std::uniform_real_distribution<double> distribution(0, 1);
+            double random = distribution(randomEngine);
+
+            if (node->isCurrentPlayerMove || random < randomExploreFactor) {
+                node = std::next(
                         std::begin(node->children),
                         getRandomNumber(0, static_cast<int>(node->children.size()) - 1))->second.get();
-
-                 node = randomChild;
             } else {
-                Node * bestChild = node->getBestChild(CP);
-                if (bestChild == nullptr) // No child, also terminal status
-                    return node;
-
-                node = bestChild;
+                 node = node->getBestChild(CP);
             }
 
             if (node->currentMove.has_value()) {
@@ -135,7 +132,7 @@ double MCTSPlayer::defaultPolicy(Node *node, Game simulationGame) {
     std::optional<Chess> winner = node->winner;
     bool isCurrentPlayer = !node->isCurrentPlayerMove;
     int moveCount = 0;
-    while (!winner.has_value() || moveCount <= 7) {
+    while (!winner.has_value() && moveCount <= 7) {
         moveCount++;
         auto availableMoves = simulationGame.getAvailableMoves();
 
@@ -156,9 +153,11 @@ double MCTSPlayer::defaultPolicy(Node *node, Game simulationGame) {
     if (!winner.has_value()) {
         return 0.0;
     } else if (winner.value() != chess) {
-        return -1.0;
+        if (moveCount <= 2) {
+            return -100000.0;
+        } else return -1.0 * pow(Gamma, moveCount);
     } else {
-        return 0.5 * pow(Gamma, moveCount);
+        return 1.0 * pow(Gamma, moveCount);
     }
 }
 

@@ -35,7 +35,7 @@ int main() {
     int currentPlayer = 1;
     std::optional<Chess> winner;
 
-    auto ai = MCTSPlayer(game, Player2, 3000);
+    auto ai = MCTSPlayer(game, Player2, 5000);
     do {
         printBoard(game, X, Y);
 
