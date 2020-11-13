@@ -18,6 +18,7 @@ public:
 
     // throws when lastPlacedPosition is out of bounds or has no chess at all.
     [[nodiscard]] std::optional<Chess> checkWin(const Pos &lastPlacedPosition) const;
+    [[nodiscard]] bool checkDraw() const;
 
 private:
     Board board;

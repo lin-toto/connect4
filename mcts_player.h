@@ -5,7 +5,6 @@
 #include "player.h"
 #include <unordered_map>
 #include <memory>
-#include <chrono>
 #include <optional>
 #include <cmath>
 #include <limits>
@@ -28,30 +27,19 @@ struct Node {
     [[nodiscard]] Node * getBestChild(double CP) const noexcept;
 };
 
-class MCTSPlayer: public BasePlayer {
+class MCTSPlayer: public ComputerPlayer {
 public:
     MCTSPlayer(const Game &currentGame, Chess myChess, int timeBudget);
     Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) override;
 private:
     std::unique_ptr<Node> treeRoot;
 
-    std::chrono::milliseconds timeBudgetPerStep;
-    std::chrono::time_point<std::chrono::system_clock> startTime;
-
-    std::default_random_engine randomEngine;
-
     const double CP = 0.5, Gamma = 0.8, randomExploreFactor = 0.2;
-
-    [[nodiscard]] constexpr Chess getMoveChessType(bool isCurrentPlayer) const noexcept;
 
     void makeNewRoot(Node *node);
     Node * treePolicy(Game &game);
     double defaultPolicy(Node *node, Game simulationGame);
     void backup(Node *node, double reward) noexcept;
-
-    void startTimer() noexcept;
-    [[nodiscard]] bool checkWithinTimeLimit() const noexcept;
-    [[nodiscard]] int getRandomNumber(int lower, int upper) noexcept;
 };
 
 #endif //CONNECT4_MCTS_PLAYER_H

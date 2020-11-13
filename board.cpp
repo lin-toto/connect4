@@ -39,6 +39,16 @@ Board::~Board() noexcept {
     delete[] board;
 }
 
+bool Board::operator==(const Board &other) const {
+    if (sizeX != other.sizeX || sizeY != other.sizeY) return false;
+    for (int i = 0; i < sizeX * sizeY; i++) {
+        if (board[i] != other.board[i])
+            return false;
+    }
+
+    return true;
+}
+
 constexpr int Board::getOffset(const Pos &pos) const {
     if (pos.Y < 0 || pos.Y >= sizeY || pos.X < 0 || pos.X >= sizeX)
         throw PosOutOfBoundsException(pos);
@@ -50,10 +60,24 @@ Chess Board::get(const Pos &pos) const {
     return board[getOffset(pos)];
 }
 
-std::pair<int, int> Board::getSize() const {
-    return std::make_pair(sizeX, sizeY);
-}
-
 void Board::set(const Pos &pos, Chess chess) {
     board[getOffset(pos)] = chess;
+}
+
+std::size_t std::hash<Board>::operator()(const Board &board) const {
+    std::size_t hash = 0;
+
+    unsigned long long data = 0;
+    for (int i = 0; i < board.sizeX * board.sizeY; i++) {
+        data <<= 2; // NOLINT
+        data |= board.board[i];
+        if (i % 32 == 31) {
+            hash <<= 1; // NOLINT
+            hash ^= std::hash<unsigned long long>()(data);
+            data = 0;
+        }
+    }
+
+    hash ^= std::hash<unsigned long long>()(data);
+    return hash;
 }

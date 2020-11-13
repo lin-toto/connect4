@@ -3,11 +3,15 @@
 #include "game.h"
 #include "board.h"
 #include "mcts_player.h"
+#include "qlearn_player.h"
 #include <optional>
 
 void printBoard(Game &game, int X, int Y) {
     const Board &board = game.getBoard();
+
+    std::cout << "Y" << std::endl;
     for (int i = Y - 1; i >= 0; i--) {
+        std::cout << i;
         for (int j = 0; j < X; j++) {
             Chess current = board.get(Pos{j, i});
             switch (current) {
@@ -24,6 +28,10 @@ void printBoard(Game &game, int X, int Y) {
         }
         std::cout << std::endl;
     }
+
+    std::cout << " ";
+    for (int j = 0; j < X; j++) std::cout << j;
+    std::cout << "X" << std::endl;
 }
 
 int main() {
@@ -35,7 +43,8 @@ int main() {
     int currentPlayer = 1;
     std::optional<Chess> winner;
 
-    auto ai = MCTSPlayer(game, Player2, 5000);
+    //auto ai1 = MCTSPlayer(game, Player1, 3000);
+    auto ai2 = QLearnPlayer(game, Player2, 3000);
     do {
         printBoard(game, X, Y);
 
@@ -43,7 +52,7 @@ int main() {
             std::cin >> x >> y;
         } else {
             std::cout << "Thinking..." << std::endl;
-            auto move = ai.requestNextMove(Pos{x, y});
+            auto move = ai2.requestNextMove(Pos{x, y});
             x = move.X;
             y = move.Y;
         }
@@ -55,9 +64,13 @@ int main() {
             currentPlayer = currentPlayer == 1 ? 2 : 1;
             winner = game.checkWin(Pos{x, y});
         }
-    } while (!winner.has_value());
+    } while (!winner.has_value() && !game.checkDraw());
 
-    std::cout << "Winner is " << winner.value() << std::endl;
+    if (winner.has_value()) {
+        std::cout << "Winner is " << winner.value() << std::endl;
+    } else {
+        std::cout << "Draw!" << std::endl;
+    }
     printBoard(game, X, Y);
     return 0;
 }

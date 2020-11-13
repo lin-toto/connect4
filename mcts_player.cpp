@@ -37,11 +37,9 @@ Node * Node::getBestChild(double CP) const noexcept {
     return bestChild;
 }
 
-MCTSPlayer::MCTSPlayer(const Game &currentGame, Chess myChess, int timeBudget): // NOLINT
-    BasePlayer(currentGame, myChess), timeBudgetPerStep(timeBudget) {
+MCTSPlayer::MCTSPlayer(const Game &currentGame, Chess myChess, int timeBudget):
+    ComputerPlayer(currentGame, myChess, timeBudget) {
     treeRoot = std::make_unique<Node>();
-    std::random_device rd;
-    randomEngine = std::default_random_engine{rd()};
 }
 
 Pos MCTSPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
@@ -84,9 +82,7 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
                 availableMoves.erase(availableMoves.find(kv.first));
             }
 
-            auto randomMove = *std::next(
-                    std::begin(availableMoves),
-                    getRandomNumber(0, static_cast<int>(availableMoves.size()) - 1));
+            auto randomMove = *getRandomElement(availableMoves);
 
             Node * child = new Node(randomMove);
             child->isCurrentPlayerMove = !node->isCurrentPlayerMove;
@@ -101,13 +97,10 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
             if (node->children.empty())
                 return node;
 
-            std::uniform_real_distribution<double> distribution(0, 1);
-            double random = distribution(randomEngine);
+            double random = getRandomNumber(0, 1);
 
             if (node->isCurrentPlayerMove || random < randomExploreFactor) {
-                node = std::next(
-                        std::begin(node->children),
-                        getRandomNumber(0, static_cast<int>(node->children.size()) - 1))->second.get();
+                node = getRandomElement(node->children)->second.get();
             } else {
                  node = node->getBestChild(CP);
             }
@@ -132,16 +125,14 @@ double MCTSPlayer::defaultPolicy(Node *node, Game simulationGame) {
     std::optional<Chess> winner = node->winner;
     bool isCurrentPlayer = !node->isCurrentPlayerMove;
     int moveCount = 0;
-    while (!winner.has_value() && moveCount <= 7) {
+    while (!winner.has_value() && !game.checkDraw() && moveCount <= 7) {
         moveCount++;
         auto availableMoves = simulationGame.getAvailableMoves();
 
         if (availableMoves.empty())
             break;
 
-        auto randomMove = *std::next(
-                std::begin(availableMoves),
-                getRandomNumber(0, static_cast<int>(availableMoves.size()) - 1));
+        auto randomMove = *getRandomElement(availableMoves);
 
         if (!simulationGame.tryPlace(randomMove, getMoveChessType(isCurrentPlayer)))
             throw std::runtime_error("Cannot place move");
@@ -184,26 +175,4 @@ void MCTSPlayer::makeNewRoot(Node *node) {
     treeRoot = std::move(nodeInChildrenMap->second);
 
     // Unnecessary parts of the tree will be cleaned up automatically, because we're using unique_ptr
-}
-
-constexpr Chess MCTSPlayer::getMoveChessType(bool isCurrentPlayer) const noexcept {
-    if (chess == Player1) {
-        return isCurrentPlayer ? Player1 : Player2;
-    } else {
-        return isCurrentPlayer ? Player2 : Player1;
-    }
-}
-
-void MCTSPlayer::startTimer() noexcept {
-    startTime = std::chrono::system_clock::now();
-}
-
-bool MCTSPlayer::checkWithinTimeLimit() const noexcept {
-    auto currentTime = std::chrono::system_clock::now();
-    return currentTime - startTime < timeBudgetPerStep;
-}
-
-int MCTSPlayer::getRandomNumber(int lower, int upper) noexcept {
-    std::uniform_int_distribution<int> uniformDist(lower, upper);
-    return uniformDist(randomEngine);
 }

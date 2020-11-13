@@ -54,6 +54,19 @@ std::unordered_set<Pos> Game::getAvailableMoves() const noexcept {
     return result;
 }
 
+bool Game::checkDraw() const {
+    int X, Y;
+    std::tie(X, Y) = board.getSize();
+
+    for (int x = 0; x < X; x++) {
+        if (columnMaxY[x] < Y) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 std::optional<Chess> Game::checkWin(const Pos &lastPlacedPosition) const {
     if (auto winner = checkWinInternal(lastPlacedPosition, Pos{0, -1}, std::nullopt)) return winner;
     if (auto winner = checkWinInternal(lastPlacedPosition, Pos{1, 0}, Pos{-1, 0})) return winner;

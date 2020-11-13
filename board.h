@@ -6,7 +6,7 @@
 #include <functional>
 #include <utility>
 
-enum Chess {
+enum Chess: unsigned char {
     Empty = 0,
     Player1,
     Player2
@@ -38,14 +38,23 @@ public:
     Board(int X, int Y) noexcept;
     Board(const Board &other) noexcept;
     ~Board() noexcept;
+    bool operator==(const Board &other) const;
     [[nodiscard]] Chess get(const Pos &pos) const;
-    [[nodiscard]] std::pair<int, int> getSize() const;
+    [[nodiscard]] constexpr std::pair<int, int> getSize() const {
+        return std::make_pair(sizeX, sizeY);
+    }
     friend class Game;
+    friend class std::hash<Board>;
 private:
     int sizeX, sizeY;
     Chess *board;
     void set(const Pos &pos, Chess chess);
     [[nodiscard]] constexpr int getOffset(const Pos &pos) const;
+};
+
+template <>
+struct std::hash<Board> {
+    std::size_t operator()(const Board &board) const;
 };
 
 #endif //CONNECT4_BOARD_H
