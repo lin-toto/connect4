@@ -1,10 +1,10 @@
 #ifndef CONNECT4_BOARD_H
 #define CONNECT4_BOARD_H
 
-#include <cstring>
 #include <exception>
 #include <functional>
 #include <utility>
+#include <algorithm>
 
 enum Chess: unsigned char {
     Empty = 0,
@@ -38,7 +38,8 @@ public:
     Board(int X, int Y) noexcept;
     Board(const Board &other) noexcept;
     ~Board() noexcept;
-    bool operator==(const Board &other) const;
+    Board & operator=(const Board &other) noexcept;
+    bool operator==(const Board &other) const noexcept;
     [[nodiscard]] Chess get(const Pos &pos) const;
     [[nodiscard]] constexpr std::pair<int, int> getSize() const {
         return std::make_pair(sizeX, sizeY);

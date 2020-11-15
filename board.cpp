@@ -25,21 +25,34 @@ constexpr Pos PosOutOfBoundsException::getPos() const noexcept {
 
 Board::Board(int X, int Y) noexcept: sizeX(X), sizeY(Y)  {
     board = new Chess[sizeX * sizeY];
-    memset(board, 0, sizeof(int) * sizeX * sizeY);
+    std::fill(board, board + sizeX * sizeY, Empty);
 }
 
 Board::Board(const Board &other) noexcept {
     sizeX = other.sizeX;
     sizeY = other.sizeY;
     board = new Chess[sizeX * sizeY];
-    memcpy(board, other.board, sizeof(int) * sizeX * sizeY);
+    std::copy(other.board, other.board + sizeX * sizeY, board);
 }
 
 Board::~Board() noexcept {
     delete[] board;
 }
 
-bool Board::operator==(const Board &other) const {
+Board & Board::operator=(const Board &other) noexcept {
+    if (&other != this) {
+        sizeX = other.sizeX;
+        sizeY = other.sizeY;
+
+        delete[] board;
+        board = new Chess[sizeX * sizeY];
+        std::copy(other.board, other.board + sizeX * sizeY, board);
+    }
+
+    return *this;
+}
+
+bool Board::operator==(const Board &other) const noexcept {
     if (sizeX != other.sizeX || sizeY != other.sizeY) return false;
     for (int i = 0; i < sizeX * sizeY; i++) {
         if (board[i] != other.board[i])

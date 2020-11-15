@@ -29,7 +29,7 @@ void printBoard(Game &game, int X, int Y) {
         std::cout << std::endl;
     }
 
-    std::cout << " ";
+    std::cout << "+";
     for (int j = 0; j < X; j++) std::cout << j;
     std::cout << "X" << std::endl;
 }
@@ -43,13 +43,17 @@ int main() {
     int currentPlayer = 1;
     std::optional<Chess> winner;
 
-    //auto ai1 = MCTSPlayer(game, Player1, 3000);
-    auto ai2 = QLearnPlayer(game, Player2, 3000);
+    //auto ai1 = QLearnPlayer(game, Player1, 1000);
+    auto ai2 = QLearnPlayer(game, Player2, 5000);
     do {
         printBoard(game, X, Y);
 
         if (currentPlayer == 1) {
             std::cin >> x >> y;
+            /*std::cout << "Thinking..." << std::endl;
+            auto move = ai1.requestNextMove(Pos{x, y});
+            x = move.X;
+            y = move.Y;*/
         } else {
             std::cout << "Thinking..." << std::endl;
             auto move = ai2.requestNextMove(Pos{x, y});
@@ -67,7 +71,7 @@ int main() {
     } while (!winner.has_value() && !game.checkDraw());
 
     if (winner.has_value()) {
-        std::cout << "Winner is " << winner.value() << std::endl;
+        std::cout << "Winner is " << (int)winner.value() << std::endl;
     } else {
         std::cout << "Draw!" << std::endl;
     }

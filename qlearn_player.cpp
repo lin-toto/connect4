@@ -4,24 +4,36 @@ Pos QLearnPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
     Game simulationGame = game;
 
     startTimer();
+    int stepCount = 0;
     while (checkWithinTimeLimit()) {
-        Game previousGameState = simulationGame;
-        Pos move = chooseAction(game);
-        if (!simulationGame.tryPlace(move, chess))
+        stepCount++;
+        Board previousBoard = simulationGame.getBoard();
+        Pos myMove = chooseAction(simulationGame, true);
+        if (!simulationGame.tryPlace(myMove, getMoveChessType(true)))
             throw std::runtime_error("Cannot place chess!");
 
-        double reward = -1.0;
-        auto winner = simulationGame.checkWin(move);
+        Pos opponentMove = chooseAction(simulationGame, false);
+        if (!simulationGame.tryPlace(opponentMove, getMoveChessType(false)))
+            throw std::runtime_error("Cannot place chess!");
+
+        double reward = 0;
+        auto winner = simulationGame.checkWin(myMove);
         if (winner.has_value()) {
             if (winner.value() == chess)
-                reward = 100.0;
-            else
-                reward = -100.0;
+                reward = 1.0;
+            else {
+                if (stepCount == 1) {
+                    reward = -100000.0;
+                } else {
+                    reward = -2.0;
+                }
+            }
         }
 
-        learn(previousGameState.getBoard(), move, simulationGame.getBoard(), reward);
-        if (winner.has_value() || simulationGame.checkDraw()) {
+        learn(previousBoard, myMove, simulationGame.getBoard(), reward);
+        if (winner.has_value() || simulationGame.checkDraw() || stepCount >= 4) {
             simulationGame = game;
+            stepCount = 0;
         }
     }
 
@@ -31,11 +43,11 @@ Pos QLearnPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
     })->first;
 }
 
-Pos QLearnPlayer::chooseAction(const Game &simulationGame) noexcept {
+Pos QLearnPlayer::chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept {
     auto availableMoves = simulationGame.getAvailableMoves();
 
     auto random = getRandomNumber<double>(0, 1);
-    if (random < randomExploreFactor) {
+    if (random < randomExploreFactor || !isCurrentPlayer) {
         return *getRandomElement(availableMoves);
     } else {
         const Board &board = simulationGame.getBoard();

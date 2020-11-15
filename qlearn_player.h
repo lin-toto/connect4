@@ -15,19 +15,19 @@ public:
 private:
     std::unordered_map<Board, std::unordered_map<Pos, double>> stateActionRewardMap;
 
-    const double Alpha = 0.5, Gamma = 0.98, randomExploreFactor = 0.1;
+    const double Alpha = 0.3, Gamma = 0.9, randomExploreFactor = 0.2;
 
-    Pos chooseAction(const Game &simulationGame) noexcept;
+    Pos chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept;
     void learn(const Board &oldBoard, const Pos &move, const Board &newBoard, double reward) noexcept;
 
     [[nodiscard]] inline double getRewardByStateAction(const Board &board, const Pos &pos) const noexcept {
         auto boardMapElement = stateActionRewardMap.find(board);
         if (boardMapElement == stateActionRewardMap.end())
-            return 0.0;
+            return 1.0;
 
         auto rewardElement = boardMapElement->second.find(pos);
         if (rewardElement == boardMapElement->second.end())
-            return 0.0;
+            return 1.0;
 
         return rewardElement->second;
     }

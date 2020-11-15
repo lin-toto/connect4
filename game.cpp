@@ -2,10 +2,6 @@
 
 Game::Game(int X, int Y, int N) noexcept: board(X, Y), connectN(N), columnMaxY(X) {}
 
-const Board & Game::getBoard() const noexcept {
-    return board;
-}
-
 bool Game::tryPlace(const Pos &pos, Chess chess) noexcept {
     try {
         Chess current = board.get(pos);
