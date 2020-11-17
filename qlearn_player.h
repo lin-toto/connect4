@@ -15,9 +15,9 @@ public:
 private:
     std::unordered_map<Board, std::unordered_map<Pos, double>> stateActionRewardMap;
 
-    const double Alpha = 0.3, Gamma = 0.9, randomExploreFactor = 0.2;
+    const double Alpha = 0.5, Gamma = 0.8, randomExploreFactor = 0.1;
 
-    Pos chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept;
+    std::optional<Pos> chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept;
     void learn(const Board &oldBoard, const Pos &move, const Board &newBoard, double reward) noexcept;
 
     [[nodiscard]] inline double getRewardByStateAction(const Board &board, const Pos &pos) const noexcept {

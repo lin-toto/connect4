@@ -1,37 +1,55 @@
 #include "qlearn_player.h"
 
+#include <iostream>
 Pos QLearnPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
     Game simulationGame = game;
 
     startTimer();
     int stepCount = 0;
+
+    std::optional<Chess> winner;
     while (checkWithinTimeLimit()) {
+        winner = std::nullopt;
         stepCount++;
         Board previousBoard = simulationGame.getBoard();
-        Pos myMove = chooseAction(simulationGame, true);
-        if (!simulationGame.tryPlace(myMove, getMoveChessType(true)))
-            throw std::runtime_error("Cannot place chess!");
 
-        Pos opponentMove = chooseAction(simulationGame, false);
-        if (!simulationGame.tryPlace(opponentMove, getMoveChessType(false)))
-            throw std::runtime_error("Cannot place chess!");
+        auto myMove = chooseAction(simulationGame, true);
+        if (myMove.has_value()) {
+            if (!simulationGame.tryPlace(myMove.value(), getMoveChessType(true)))
+                throw std::runtime_error("Cannot place chess!");
+
+            winner = simulationGame.checkWin(myMove.value());
+
+            if (!winner.has_value()) {
+                auto opponentMove = chooseAction(simulationGame, false);
+                if (opponentMove.has_value()) {
+                    if (!simulationGame.tryPlace(opponentMove.value(), getMoveChessType(false)))
+                        throw std::runtime_error("Cannot place chess!");
+
+                    winner = simulationGame.checkWin(opponentMove.value());
+                }
+            }
+        }
 
         double reward = 0;
-        auto winner = simulationGame.checkWin(myMove);
         if (winner.has_value()) {
             if (winner.value() == chess)
                 reward = 1.0;
             else {
                 if (stepCount == 1) {
-                    reward = -100000.0;
+                    reward = -10000000.0;
+                } else if (stepCount == 2) {
+                    reward = -1000.0;
                 } else {
-                    reward = -2.0;
+                    reward = -1.0;
                 }
             }
         }
 
-        learn(previousBoard, myMove, simulationGame.getBoard(), reward);
-        if (winner.has_value() || simulationGame.checkDraw() || stepCount >= 4) {
+        if (myMove.has_value())
+            learn(previousBoard, myMove.value(), simulationGame.getBoard(), reward);
+
+        if (winner.has_value() || !myMove.has_value()) {
             simulationGame = game;
             stepCount = 0;
         }
@@ -43,8 +61,10 @@ Pos QLearnPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
     })->first;
 }
 
-Pos QLearnPlayer::chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept {
+std::optional<Pos> QLearnPlayer::chooseAction(const Game &simulationGame, bool isCurrentPlayer) noexcept {
     auto availableMoves = simulationGame.getAvailableMoves();
+    if (availableMoves.empty())
+        return std::nullopt;
 
     auto random = getRandomNumber<double>(0, 1);
     if (random < randomExploreFactor || !isCurrentPlayer) {
@@ -68,6 +88,7 @@ Pos QLearnPlayer::chooseAction(const Game &simulationGame, bool isCurrentPlayer)
         return *getRandomElement(maxRewardMoves);
     }
 }
+
 
 void QLearnPlayer::learn(const Board &oldBoard, const Pos &move, const Board &newBoard, double reward) noexcept {
     double maxReward = 0.0;

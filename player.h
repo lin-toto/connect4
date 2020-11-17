@@ -9,7 +9,7 @@ class BasePlayer {
 public:
     explicit BasePlayer(const Game &currentGame, Chess myChess) : game(currentGame), chess(myChess) {};
     virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) = 0;
-
+    virtual bool isInteractive() const noexcept = 0;
 protected:
     const Game &game;
     Chess chess;
@@ -18,6 +18,7 @@ protected:
 class ComputerPlayer : public BasePlayer {
 public:
     explicit ComputerPlayer(const Game &currentGame, Chess myChess, int timeBudget);
+    [[nodiscard]] bool isInteractive() const noexcept override { return false; }
 protected:
     std::chrono::milliseconds timeBudgetPerStep;
     std::chrono::time_point<std::chrono::system_clock> startTime;

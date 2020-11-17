@@ -125,7 +125,7 @@ double MCTSPlayer::defaultPolicy(Node *node, Game simulationGame) {
     std::optional<Chess> winner = node->winner;
     bool isCurrentPlayer = !node->isCurrentPlayerMove;
     int moveCount = 0;
-    while (!winner.has_value() && !game.checkDraw() && moveCount <= 7) {
+    while (!winner.has_value() && !game.checkDraw() && moveCount <= 11) {
         moveCount++;
         auto availableMoves = simulationGame.getAvailableMoves();
 

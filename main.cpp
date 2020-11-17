@@ -4,7 +4,21 @@
 #include "board.h"
 #include "mcts_player.h"
 #include "qlearn_player.h"
+#include "ui.h"
 #include <optional>
+#include <csignal>
+
+UI *ui = nullptr;
+
+int main() {
+    ui = UI::getInstance();
+    ui->render();
+    signal(SIGWINCH, UI::onWindowResize);
+    ui->eventLoop();
+
+    delete ui;
+    return 0;
+}
 
 void printBoard(Game &game, int X, int Y) {
     const Board &board = game.getBoard();
@@ -34,17 +48,17 @@ void printBoard(Game &game, int X, int Y) {
     std::cout << "X" << std::endl;
 }
 
-int main() {
+int main2() {
     int X, Y, N;
     std::cin >> X >> Y >> N;
 
     Game game(X, Y, N);
     int x, y;
-    int currentPlayer = 1;
+    int currentPlayer = 2;
     std::optional<Chess> winner;
 
-    //auto ai1 = QLearnPlayer(game, Player1, 1000);
-    auto ai2 = QLearnPlayer(game, Player2, 5000);
+    //auto ai1 = QLearnPlayer(game, Player1, 10000);
+    auto ai2 = MCTSPlayer(game, Player2, 3000);
     do {
         printBoard(game, X, Y);
 
