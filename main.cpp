@@ -54,7 +54,7 @@ int main2() {
 
     Game game(X, Y, N);
     int x, y;
-    int currentPlayer = 2;
+    int currentPlayer = 1;
     std::optional<Chess> winner;
 
     //auto ai1 = QLearnPlayer(game, Player1, 10000);
