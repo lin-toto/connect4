@@ -1,5 +1,5 @@
-#ifndef CONNECT4_BASE_H
-#define CONNECT4_BASE_H
+#ifndef CONNECT4_BASE_VIEW_CONTROLLER_H
+#define CONNECT4_BASE_VIEW_CONTROLLER_H
 
 #include <cdk.h>
 #include <curses.h>
@@ -20,4 +20,4 @@ protected:
             const std::pair<std::string, State> choices[], int n) noexcept;
 };
 
-#endif //CONNECT4_BASE_H
+#endif //CONNECT4_BASE_VIEW_CONTROLLER_H

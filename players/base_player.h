@@ -1,15 +1,21 @@
-#ifndef CONNECT4_PLAYER_H
-#define CONNECT4_PLAYER_H
+#ifndef CONNECT4_BASE_PLAYER_H
+#define CONNECT4_BASE_PLAYER_H
 
 #include "game.h"
 #include <random>
 #include <chrono>
 
+enum PlayerType: char {
+    Human = 0,
+    MCTS = 1,
+    QLearn = 2
+};
+
 class BasePlayer {
 public:
     explicit BasePlayer(const Game &currentGame, Chess myChess) : game(currentGame), chess(myChess) {};
     virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) = 0;
-    virtual bool isInteractive() const noexcept = 0;
+    [[nodiscard]] virtual bool isInteractive() const noexcept = 0;
 protected:
     const Game &game;
     Chess chess;
@@ -48,4 +54,4 @@ protected:
     }
 };
 
-#endif //CONNECT4_PLAYER_H
+#endif //CONNECT4_BASE_PLAYER_H

@@ -7,9 +7,11 @@
 #include <unistd.h>
 #include <sys/ttycom.h>
 #include <sys/ioctl.h>
-#include "view_controllers/base.h"
+#include "view_controllers/base_view_controller.h"
+#include "view_controllers/game_play.h"
 #include "view_controller_factory.h"
 #include "ui_state.h"
+#include "players/base_player.h"
 
 class UI {
 public:
@@ -27,6 +29,7 @@ public:
 
     static void onWindowResize(int) noexcept;
     void stateTransition(State state);
+    void beginGamePlay(PlayerType player1Type, PlayerType player2Type, int Y, int X, int N);
 
     ~UI() noexcept;
     UI(const UI &) = delete;

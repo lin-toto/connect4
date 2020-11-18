@@ -1,7 +1,8 @@
 #ifndef CONNECT4_GAME_OPTIONS_H
 #define CONNECT4_GAME_OPTIONS_H
 
-#include "base.h"
+#include "base_view_controller.h"
+#include "players/base_player.h"
 #include "ui.h"
 
 class GameOptionsViewController: public BaseViewController {
@@ -16,21 +17,25 @@ private:
         AdvancedOptions = 2,
         BottomMenu = 3
     };
+    const int panelCount = 4;
     Panel currentPanel = BottomMenu;
 
     const std::string windowTitle = "Game Options";
     const int formBoxHeight = 10, formBoxWidth = 16, formBoxPadding = 6, formBoxTopPadding = 2;
     static const int advancedOptionCount = 3;
     const std::string advancedOptionLabel[advancedOptionCount] = { "Rows Y", "Columns X", "Connect N" };
-    static const int playerTypesCount = 4;
-    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent", "GAN-CNN Agent" };
+    static const int playerTypesCount = 3;
+    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent" };
 
     const int menuBoxWidth = 21;
     static const int menuChoicesCount = 3;
     const std::pair<std::string, State> menuChoices[menuChoicesCount] = {
-            {"Start Game", State::StateGame},
+            {"Start Game", State::StateGamePlay},
             {"Back", State::StateMainMenu}
     };
+
+    static const int defaultY = 6, defaultX = 7, defaultN = 4;
+    const int advancedOptionDefaultValues[advancedOptionCount] = { defaultY, defaultX, defaultN };
 
     CDKRADIO *player1TypeRadio = nullptr, *player2TypeRadio = nullptr;
     WINDOW *popupWindow = nullptr, *advancedOptionWindow = nullptr, *bottomMenuWindow = nullptr;
@@ -40,10 +45,10 @@ private:
     MENU *bottomMenu = nullptr;
     ITEM **bottomMenuItems = nullptr;
 
-    void handleKeyboardEvent(int key);
-    bool handleRadioKeyboardEvent(CDKRADIO *radio, int key);
-    bool handleFormKeyboardEvent(FORM *form, int key);
-    bool handleMenuKeyboardEvent(MENU *menu, int key);
+    void handleKeyboardEvent(int key) noexcept;
+    bool handleRadioKeyboardEvent(CDKRADIO *radio, int key) noexcept;
+    bool handleFormKeyboardEvent(FORM *form, FIELD **fields, int key) noexcept;
+    bool handleMenuKeyboardEvent(MENU *menu, int key) noexcept;
     void release() noexcept;
 };
 

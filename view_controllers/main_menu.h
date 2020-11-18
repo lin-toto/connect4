@@ -1,7 +1,7 @@
 #ifndef CONNECT4_MAIN_MENU_H
 #define CONNECT4_MAIN_MENU_H
 
-#include "base.h"
+#include "base_view_controller.h"
 #include "ui.h"
 
 class MainMenuViewController: public BaseViewController {
@@ -33,7 +33,7 @@ private:
     ITEM **mainMenuItems = nullptr;
     WINDOW *logoWindow = nullptr, *menuWindow = nullptr, *menuSubWindow = nullptr;
 
-    void handleKeyboardEvent(int key);
+    void handleKeyboardEvent(int key) noexcept;
     void release() noexcept;
 };
 

@@ -4,7 +4,7 @@
 enum State: char {
     StateMainMenu,
     StateGameOptions,
-    StateGame,
+    StateGamePlay,
     StateCredits,
     Exit
 };

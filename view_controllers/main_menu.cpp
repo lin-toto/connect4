@@ -5,11 +5,10 @@
 #include "main_menu.h"
 
 void MainMenuViewController::render() {
-    curs_set(0);
     release();
 
     int x, y;
-    std::tie(x, y) = UI::getInstance()->getWindowSize();
+    std::tie(x, y) = UI::getWindowSize();
 
     int logoLength = logo[0].length();
     if (x >= logoLength + logoSidePadding * 2 && y >= logoLineCount + menuHeight) {
@@ -41,12 +40,12 @@ void MainMenuViewController::render() {
 void MainMenuViewController::checkEvent() {
     if (menuWindow != nullptr) {
         wtimeout(menuWindow, 0);
-        if (int c = wgetch(menuWindow))
-            handleKeyboardEvent(c);
+        int c = wgetch(menuWindow);
+        if (c > 0) handleKeyboardEvent(c);
     }
 }
 
-void MainMenuViewController::handleKeyboardEvent(int key) {
+void MainMenuViewController::handleKeyboardEvent(int key) noexcept {
     if (menuWindow != nullptr && mainMenu != nullptr) {
         switch (key) {
             default:

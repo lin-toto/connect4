@@ -1,7 +1,7 @@
 #ifndef CONNECT4_HUMAN_PLAYER_H
 #define CONNECT4_HUMAN_PLAYER_H
 
-#include "player.h"
+#include "base_player.h"
 
 class HumanPlayer : public BasePlayer {
     [[nodiscard]] bool isInteractive() const noexcept override { return true; }

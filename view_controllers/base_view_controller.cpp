@@ -2,7 +2,7 @@
 // Created by Toto Lin on 2020/11/18.
 //
 
-#include "base.h"
+#include "base_view_controller.h"
 
 std::pair<MENU *, ITEM **> BaseViewController::makeMenu(const std::pair<std::string, State> choices[], int n) noexcept {
     ITEM **myItems = static_cast<ITEM **>(calloc(n + 1, sizeof(ITEM *)));

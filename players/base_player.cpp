@@ -1,4 +1,4 @@
-#include "player.h"
+#include "base_player.h"
 
 ComputerPlayer::ComputerPlayer(const Game &currentGame, Chess myChess, int timeBudget): // NOLINT
     BasePlayer(currentGame, myChess), timeBudgetPerStep(timeBudget) {

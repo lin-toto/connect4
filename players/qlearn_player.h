@@ -2,7 +2,7 @@
 #define CONNECT4_QLEARN_PLAYER_H
 
 #include "board.h"
-#include "player.h"
+#include "base_player.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
