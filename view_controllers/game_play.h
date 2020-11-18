@@ -21,7 +21,9 @@ public:
     void checkEvent() override;
 private:
     const int boardPaddingX = 4, boardPaddingY = 2;
-    const int aiTimeBudget = 3000;
+    const int sidebarWidth = 15;
+
+    const int aiTimeBudget = 100;
 
     int sizeX, sizeY;
     Pos cursorPosition = Pos{0, 0};
@@ -29,9 +31,15 @@ private:
     Chess currentPlayer = Player1;
     std::unique_ptr<BasePlayer> player1, player2;
     std::atomic<std::optional<Pos>> currentPlacedPosition = std::atomic(std::optional<Pos>(std::nullopt));
-    bool boardFinal = false;
+    std::optional<Chess> winner = std::nullopt;
+    bool drawGame = false;
+
+    // Because std::async will block if its future is not moved,
+    // we need to store it although we never use it. C++ is weird
+    [[maybe_unused]] std::future<void> aiPlayerFuture;
 
     WINDOW *boardWindow = nullptr;
+    bool renderSidebar = false;
 
     constexpr BasePlayer * getCurrentPlayerObject() const noexcept {
         if (currentPlayer == Player1)
@@ -51,10 +59,19 @@ private:
         }
     }
 
+    const std::wstring getPlayerDescription(Chess player) const noexcept {
+        if (player == Player1)
+            return std::wstring(L"Player 1 ") + getChessText(player);
+        else
+            return std::wstring(L"Player 2 ") + getChessText(player);
+    };
+
     void drawBoard(WINDOW *window, const Board &board, Pos pos) noexcept;
     void updateChess(WINDOW *window, Pos pos, Chess chess, bool highlight = false, bool refresh = false) noexcept;
 
+    void requestNextMove(std::optional<Pos> lastPlacedPosition) noexcept;
     bool tryMoveCursor(Pos newPosition) noexcept;
+    void updateInformation() noexcept;
 
     void handleKeyboardEvent(int key) noexcept;
     void release() noexcept;
