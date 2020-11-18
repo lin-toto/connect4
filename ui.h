@@ -28,6 +28,7 @@ public:
     }
 
     static void onWindowResize(int) noexcept;
+    void rerenderOnNextCycle() noexcept { rerenderFlag = true; }
     void stateTransition(State state);
     void beginGamePlay(PlayerType player1Type, PlayerType player2Type, int Y, int X, int N);
 
@@ -43,7 +44,7 @@ private:
 
     int sizeX = 0, sizeY = 0;
     std::unique_ptr<BaseViewController> currentViewController;
-    bool exitFlag = false, windowResized = false;
+    bool exitFlag = false, rerenderFlag = true;
 
     void resize() noexcept;
 };

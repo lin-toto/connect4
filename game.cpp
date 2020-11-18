@@ -24,18 +24,6 @@ bool Game::tryPlace(const Pos &pos, Chess chess) noexcept {
     return true;
 }
 
-void Game::revertMove(const Pos &pos) {
-    Chess current = board.get(pos);
-    if (current == Empty)
-        throw std::runtime_error("Current position has no chess placed");
-
-    if (columnMaxY[pos.X] != pos.Y + 1)
-        throw std::runtime_error("Above current position has chess placed, board would become invalid");
-
-    board.set(pos, Empty);
-    columnMaxY[pos.X] = pos.Y;
-}
-
 std::unordered_set<Pos> Game::getAvailableMoves() const noexcept {
     int X, Y;
     std::unordered_set<Pos> result;

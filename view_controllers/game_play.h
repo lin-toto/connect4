@@ -3,17 +3,58 @@
 
 #include "base_view_controller.h"
 #include "players/base_player.h"
+#include "player_factory.h"
+#include "ui.h"
+#include "game.h"
+#include <memory>
+#include <atomic>
+#include <optional>
+#include <string>
+#include <sstream>
+#include <future>
 
 class GamePlayViewController: public BaseViewController {
 public:
-    GamePlayViewController(PlayerType player1Type, PlayerType player2Type, int X, int Y, int N):
-            player1(player1Type), player2(player2Type), sizeX(X), sizeY(Y), connectN(N) {}
+    GamePlayViewController(PlayerType player1Type, PlayerType player2Type, int X, int Y, int N);
     ~GamePlayViewController() noexcept override { release(); }
     void render() override;
     void checkEvent() override;
 private:
-    PlayerType player1, player2;
-    int sizeX, sizeY, connectN;
+    const int boardPaddingX = 4, boardPaddingY = 2;
+    const int aiTimeBudget = 3000;
+
+    int sizeX, sizeY;
+    Pos cursorPosition = Pos{0, 0};
+    Game game;
+    Chess currentPlayer = Player1;
+    std::unique_ptr<BasePlayer> player1, player2;
+    std::atomic<std::optional<Pos>> currentPlacedPosition = std::atomic(std::optional<Pos>(std::nullopt));
+    bool boardFinal = false;
+
+    WINDOW *boardWindow = nullptr;
+
+    constexpr BasePlayer * getCurrentPlayerObject() const noexcept {
+        if (currentPlayer == Player1)
+            return player1.get();
+        else
+            return player2.get();
+    }
+
+    constexpr const wchar_t * getChessText(Chess chess) const noexcept {
+        switch (chess) {
+            case Empty:
+                return L" ";
+            case Player1:
+                return L"●";
+            case Player2:
+                return L"○";
+        }
+    }
+
+    void drawBoard(WINDOW *window, const Board &board, Pos pos) noexcept;
+    void updateChess(WINDOW *window, Pos pos, Chess chess, bool highlight = false, bool refresh = false) noexcept;
+
+    bool tryMoveCursor(Pos newPosition) noexcept;
 
     void handleKeyboardEvent(int key) noexcept;
     void release() noexcept;

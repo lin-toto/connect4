@@ -12,7 +12,6 @@ UI *ui = nullptr;
 
 int main() {
     ui = UI::getInstance();
-    ui->render();
     signal(SIGWINCH, UI::onWindowResize);
     ui->eventLoop();
 

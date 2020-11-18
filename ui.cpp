@@ -6,6 +6,7 @@ UI::UI() noexcept {
     // Init ncurses library
     setlocale(LC_ALL, "");
     initscr();
+    start_color();
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
@@ -19,12 +20,13 @@ UI::~UI() noexcept {
     endwin();
 }
 
+#include <iostream>
 void UI::eventLoop() {
     while (!exitFlag) {
         currentViewController->checkEvent();
 
-        if (windowResized) {
-            windowResized = false;
+        if (rerenderFlag) {
+            rerenderFlag = false;
             render();
         }
 
@@ -56,7 +58,7 @@ void UI::onWindowResize(int) noexcept {
     if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) { // NOLINT
         resize_term(size.ws_row, size.ws_col);
     }
-    UI::getInstance()->windowResized = true;
+    UI::getInstance()->rerenderOnNextCycle();
 }
 
 void UI::stateTransition(State state) {
@@ -65,12 +67,12 @@ void UI::stateTransition(State state) {
     } else {
         currentState = state;
         currentViewController = ViewControllerFactory::create(currentState);
-        render();
+        rerenderOnNextCycle();
     }
 }
 
 void UI::beginGamePlay(PlayerType player1Type, PlayerType player2Type, int Y, int X, int N) {
     currentState = StateGamePlay;
     currentViewController = std::make_unique<GamePlayViewController>(player1Type, player2Type, X, Y, N);
-    render();
+    rerenderOnNextCycle();
 }

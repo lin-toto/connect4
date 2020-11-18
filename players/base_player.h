@@ -16,6 +16,7 @@ public:
     explicit BasePlayer(const Game &currentGame, Chess myChess) : game(currentGame), chess(myChess) {};
     virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) = 0;
     [[nodiscard]] virtual bool isInteractive() const noexcept = 0;
+    virtual ~BasePlayer() = default;
 protected:
     const Game &game;
     Chess chess;

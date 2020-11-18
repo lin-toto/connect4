@@ -13,7 +13,6 @@ public:
 
     [[nodiscard]] const Board & getBoard() const noexcept { return board; }
     bool tryPlace(const Pos &pos, Chess chess) noexcept;
-    void revertMove(const Pos &pos);
     [[nodiscard]] std::unordered_set<Pos> getAvailableMoves() const noexcept;
 
     // throws when lastPlacedPosition is out of bounds or has no chess at all.

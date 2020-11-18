@@ -6,6 +6,7 @@
 #include "view_controllers/base_view_controller.h"
 #include "view_controllers/main_menu.h"
 #include "view_controllers/game_options.h"
+#include "view_controllers/credits.h"
 
 
 class ViewControllerFactory {

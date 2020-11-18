@@ -38,8 +38,10 @@ public:
     Board(int X, int Y) noexcept;
     Board(const Board &other) noexcept;
     ~Board() noexcept;
+
     Board & operator=(const Board &other) noexcept;
     bool operator==(const Board &other) const noexcept;
+
     [[nodiscard]] Chess get(const Pos &pos) const;
     [[nodiscard]] constexpr std::pair<int, int> getSize() const {
         return std::make_pair(sizeX, sizeY);
