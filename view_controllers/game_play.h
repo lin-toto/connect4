@@ -25,7 +25,7 @@ private:
     const int boardPaddingX = 4, boardPaddingY = 2;
     const int sidebarWidth = 16;
 
-    const int aiTimeBudget = 3000;
+    const int aiTimeBudget = 10000;
 
     int sizeX, sizeY;
     Pos cursorPosition = Pos{0, 0};

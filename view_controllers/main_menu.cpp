@@ -59,14 +59,14 @@ void MainMenuViewController::paintLogo() noexcept {
 }
 
 void MainMenuViewController::checkEvent() {
+    if (logoWindow != nullptr) {
+        if (shouldLogoUpdate()) paintLogo();
+    }
+
     if (menuWindow != nullptr) {
         wtimeout(menuWindow, 0);
         int c = wgetch(menuWindow);
         if (c > 0) handleKeyboardEvent(c);
-    }
-
-    if (logoWindow != nullptr) {
-        if (shouldLogoUpdate()) paintLogo();
     }
 }
 

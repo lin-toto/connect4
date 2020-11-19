@@ -16,6 +16,7 @@ class BasePlayer {
 public:
     explicit BasePlayer(const Game &currentGame, Chess myChess) : game(currentGame), chess(myChess) {};
     virtual Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) = 0;
+    virtual void requestEarlyTermination() noexcept {}
     [[nodiscard]] virtual bool isInteractive() const noexcept = 0;
     virtual ~BasePlayer() = default;
 protected:
@@ -30,12 +31,15 @@ public:
         std::random_device rd;
         randomEngine = std::default_random_engine{rd()};
     }
+    void requestEarlyTermination() noexcept override { terminateFlag = true; }
     [[nodiscard]] bool isInteractive() const noexcept override { return false; }
 protected:
     std::chrono::milliseconds timeBudgetPerStep;
     std::chrono::time_point<std::chrono::system_clock> startTime;
 
     std::default_random_engine randomEngine;
+
+    bool terminateFlag = false;
 
     [[nodiscard]] constexpr Chess getMoveChessType(bool isCurrentPlayer) const noexcept {
         if (chess == Player1) {
@@ -48,7 +52,7 @@ protected:
     constexpr void startTimer() noexcept { startTime = std::chrono::system_clock::now(); }
     [[nodiscard]] bool checkWithinTimeLimit() const noexcept {
         auto currentTime = std::chrono::system_clock::now();
-        return currentTime - startTime < timeBudgetPerStep;
+        return !terminateFlag && currentTime - startTime < timeBudgetPerStep;
     }
 
     template <class T>

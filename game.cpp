@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game(int X, int Y, int N) noexcept: board(X, Y), connectN(N), columnMaxY(X) {}
+Game::Game(int X, int Y, int N) noexcept: board(X, Y), columnMaxY(X), connectN(N) {}
 
 bool Game::tryPlace(const Pos &pos, Chess chess) noexcept {
     try {

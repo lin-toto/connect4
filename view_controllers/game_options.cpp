@@ -15,7 +15,7 @@ void GameOptionsViewController::render() {
     popupWindow = newwin(y, x, 0, 0);
     keypad(popupWindow, true);
     box(popupWindow, 0, 0);
-    if (x >= windowTitle.length()) {
+    if (static_cast<unsigned int>(x) >= windowTitle.length()) {
         mvwprintw(popupWindow, 0, (x - static_cast<int>(windowTitle.length())) / 2, windowTitle.c_str());
     }
     mvwprintw(popupWindow, y - 2, 2, "Press Arrow Keys/<TAB> to navigate, <ENTER> to select option");

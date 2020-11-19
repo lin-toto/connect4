@@ -144,33 +144,33 @@ bool GamePlayViewController::tryMoveCursor(Pos newPosition) noexcept {
 
 void GamePlayViewController::checkEvent() {
     if (boardWindow != nullptr) {
-        wtimeout(boardWindow, 0);
-        int c = wgetch(boardWindow);
-        if (c > 0) handleKeyboardEvent(c);
-
         if (!isBoardFinal()) {
             auto elapsed = getElapsedTime();
             if (elapsed != currentElapsedSeconds) {
                 currentElapsedSeconds = elapsed;
                 updateTimer();
             }
-            
+
             playGame();
         }
+
+        wtimeout(boardWindow, 0);
+        int c = wgetch(boardWindow);
+        if (c > 0) handleKeyboardEvent(c);
     }
 }
 
 void GamePlayViewController::playGame() noexcept {
     if (currentPlacedPosition.load().has_value()) {
         Pos pos = currentPlacedPosition.load().value();
+        currentPlacedPosition.store(std::nullopt);
+
         if (!game.tryPlace(pos, currentPlayer)) {
             showDialog("You cannot place at this position!");
-            currentPlacedPosition.store(std::nullopt);
         } else {
             tryMoveCursor(pos); // Function also updates chess display
 
             currentPlayer = currentPlayer == Player1 ? Player2 : Player1;
-            currentPlacedPosition.store(std::nullopt);
 
             winner = game.checkWin(pos);
             if (winner.has_value()) {
@@ -209,6 +209,13 @@ void GamePlayViewController::handleKeyboardEvent(int key) noexcept {
             default:
                 break;
             case KEY_F1:
+                if (!getCurrentPlayerObject()->isInteractive()) {
+                    // Wait for the player thread to terminate.
+
+                    getCurrentPlayerObject()->requestEarlyTermination();
+                    aiPlayerFuture.wait();
+                }
+
                 UI::getInstance()->stateTransition(StateMainMenu);
                 break;
             case 10: // Enter

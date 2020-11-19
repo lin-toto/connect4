@@ -7,7 +7,7 @@ class HumanPlayer : public BasePlayer {
 public:
     HumanPlayer(const Game &currentGame, Chess myChess): BasePlayer(currentGame, myChess) {}
     [[nodiscard]] bool isInteractive() const noexcept override { return true; }
-    Pos requestNextMove(std::optional<Pos> lastOpponentMovePosition) override {
+    Pos requestNextMove([[maybe_unused]] std::optional<Pos> lastOpponentMovePosition) override {
         throw std::runtime_error("HumanPlayer is interactive");
     }
 };
