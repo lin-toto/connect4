@@ -3,10 +3,12 @@
 
 #include "base_view_controller.h"
 #include "ui.h"
+#include <chrono>
 
 class MainMenuViewController: public BaseViewController {
 public:
-    ~MainMenuViewController() noexcept override { release(); }
+    MainMenuViewController();
+    ~MainMenuViewController() noexcept override;
     void render() override;
     void checkEvent() override;
 private:
@@ -18,6 +20,7 @@ private:
     };
     static const int menuHeight = 5, menuWidth = 15;
 
+    const std::chrono::milliseconds logoUpdatePeriod = std::chrono::milliseconds(100);
     static const int logoLineCount = 6;
     const std::string logo[logoLineCount] = {
             R"(   ____                                  _    _  _   )",
@@ -28,10 +31,17 @@ private:
             R"(                                                     )"
     };
     static const int logoSidePadding = 2;
+    unsigned char currentLogoColorCode = 0xC0;
+    std::chrono::time_point<std::chrono::system_clock> lastLogoUpdateTime;
 
     MENU *mainMenu = nullptr;
     ITEM **mainMenuItems = nullptr;
     WINDOW *logoWindow = nullptr, *menuWindow = nullptr, *menuSubWindow = nullptr;
+
+    void paintLogo() noexcept;
+    inline bool shouldLogoUpdate() const noexcept {
+        return std::chrono::system_clock::now() - lastLogoUpdateTime > logoUpdatePeriod;
+    }
 
     void handleKeyboardEvent(int key) noexcept;
     void release() noexcept;

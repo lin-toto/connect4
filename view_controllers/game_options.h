@@ -17,6 +17,12 @@ private:
         AdvancedOptions = 2,
         BottomMenu = 3
     };
+
+    struct OptionData {
+        PlayerType player1Type = Human, player2Type = Human;
+        int Y = 6, X = 7, N = 4;
+    };
+
     const int panelCount = 4;
     Panel currentPanel = BottomMenu;
 
@@ -24,8 +30,8 @@ private:
     const int formBoxHeight = 10, formBoxWidth = 16, formBoxPadding = 6, formBoxTopPadding = 2;
     static const int advancedOptionCount = 3;
     const std::string advancedOptionLabel[advancedOptionCount] = { "Rows Y", "Columns X", "Connect N" };
-    static const int playerTypesCount = 3;
-    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent" };
+    static const int playerTypesCount = 4;
+    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent", "Neural Agent" };
 
     const int menuBoxWidth = 21;
     static const int menuChoicesCount = 3;
@@ -34,8 +40,7 @@ private:
             {"Back", State::StateMainMenu}
     };
 
-    static const int defaultY = 6, defaultX = 7, defaultN = 4;
-    const int advancedOptionDefaultValues[advancedOptionCount] = { defaultY, defaultX, defaultN };
+    OptionData autoSaveOptionData;
 
     CDKRADIO *player1TypeRadio = nullptr, *player2TypeRadio = nullptr;
     WINDOW *popupWindow = nullptr, *advancedOptionWindow = nullptr, *bottomMenuWindow = nullptr;
@@ -44,6 +49,11 @@ private:
     FORM *advancedOptionForm = nullptr;
     MENU *bottomMenu = nullptr;
     ITEM **bottomMenuItems = nullptr;
+
+    OptionData getSelectedOptions() const noexcept;
+    void restoreAutoSavedOptions() noexcept;
+
+    void updatePanelFocus() noexcept;
 
     void handleKeyboardEvent(int key) noexcept;
     bool handleRadioKeyboardEvent(CDKRADIO *radio, int key) noexcept;

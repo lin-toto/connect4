@@ -17,6 +17,9 @@ public:
     virtual void render() = 0;
     virtual void checkEvent() {}
     virtual ~BaseViewController() = default;
+    BaseViewController() = default;
+    BaseViewController(const BaseViewController &other) = delete;
+    BaseViewController & operator=(const BaseViewController &other) = delete;
 protected:
     [[nodiscard]] static std::pair<MENU *, ITEM **> makeMenu (
             const std::pair<std::string, State> choices[], int n) noexcept;

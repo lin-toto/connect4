@@ -40,13 +40,14 @@ void GameOptionsViewController::render() {
         advancedOptionFields[i] = new_field(1, formBoxWidth / 3, i + 1, formBoxWidth * 2 / 3, 0, 0);
         set_field_back(advancedOptionFields[i], A_UNDERLINE);
         field_opts_off(advancedOptionFields[i], O_AUTOSKIP);
-        set_field_type(advancedOptionFields[i], TYPE_INTEGER, 0, 1, 99);
-        set_field_buffer(advancedOptionFields[i], 0, std::to_string(advancedOptionDefaultValues[i]).c_str());
+        field_opts_off(advancedOptionFields[i], O_NULLOK);
     }
 
     advancedOptionForm = new_form(advancedOptionFields);
     set_form_win(advancedOptionForm, popupWindow);
     set_form_sub(advancedOptionForm, advancedOptionWindow);
+
+    restoreAutoSavedOptions();
 
     post_form(advancedOptionForm);
     form_driver(advancedOptionForm, REQ_END_LINE);
@@ -65,9 +66,10 @@ void GameOptionsViewController::render() {
     set_menu_format(bottomMenu, 1, 2);
     set_menu_mark(bottomMenu, "   ");
     post_menu(bottomMenu);
-
     wrefresh(bottomMenuWindow);
-    wrefresh(popupWindow);
+
+    updatePanelFocus();
+    // Do not refresh popupWindow here, handled by updatePanelFocus.
 }
 
 void GameOptionsViewController::checkEvent() {
@@ -79,6 +81,9 @@ void GameOptionsViewController::checkEvent() {
 }
 
 void GameOptionsViewController::handleKeyboardEvent(int key) noexcept {
+    if (handleDialogEvent())
+        return;
+
     if (popupWindow != nullptr && advancedOptionWindow != nullptr
         && player1TypeRadio != nullptr && player2TypeRadio != nullptr
         && advancedOptionForm != nullptr && bottomMenu != nullptr) {
@@ -123,34 +128,10 @@ void GameOptionsViewController::handleKeyboardEvent(int key) noexcept {
                     break;
             }
 
-            if (previousPanel != currentPanel) {
-                // Update panel focus.
-
-                if (currentPanel == Player1Radio)
-                    setCDKRadioHighlight(player1TypeRadio, A_REVERSE);
-                else
-                    setCDKRadioHighlight(player1TypeRadio, 0);
-
-                if (currentPanel == Player2Radio)
-                    setCDKRadioHighlight(player2TypeRadio, A_REVERSE);
-                else
-                    setCDKRadioHighlight(player2TypeRadio, 0);
-
-                drawCDKRadio(player1TypeRadio, false);
-                drawCDKRadio(player2TypeRadio, false);
-
-                if (currentPanel == AdvancedOptions) {
-                    curs_set(1);
-                    pos_form_cursor(advancedOptionForm);
-                } else curs_set(0);
-
-                if (currentPanel == BottomMenu)
-                    set_menu_fore(bottomMenu, A_REVERSE);
-                else
-                    set_menu_fore(bottomMenu, A_NORMAL);
-
-                wrefresh(popupWindow);
-            }
+            if (previousPanel != currentPanel) updatePanelFocus();
+        } else if (currentPanel != BottomMenu) {
+            // Assume some option was changed, store it in autosave
+            autoSaveOptionData = getSelectedOptions();
         }
     }
 }
@@ -195,6 +176,7 @@ bool GameOptionsViewController::handleFormKeyboardEvent(FORM *form, FIELD **fiel
         case 53: case 54: case 55: case 56: case 57:
             // Number, treat as form input
             form_driver(form, key);
+            form_driver(form, REQ_END_LINE);
             return true;
         default:
             return false;
@@ -216,19 +198,73 @@ bool GameOptionsViewController::handleMenuKeyboardEvent(MENU *menu, int key) noe
             if (state != StateGamePlay) {
                 UI::getInstance()->stateTransition(state);
             } else {
-                auto player1Type = static_cast<PlayerType>(getCDKRadioSelectedItem(player1TypeRadio));
-                auto player2Type = static_cast<PlayerType>(getCDKRadioSelectedItem(player2TypeRadio));
-                int Y = atoi(field_buffer(advancedOptionFields[0], 0));
-                int X = atoi(field_buffer(advancedOptionFields[1], 0));
-                int N = atoi(field_buffer(advancedOptionFields[2], 0));
-
-                UI::getInstance()->beginGamePlay(player1Type, player2Type, Y, X, N);
+                auto option = getSelectedOptions();
+                if (option.Y < 0 || option.Y > 50)
+                    showDialog("Invalid Y value! (0-50)");
+                else if (option.X < 0 || option.X > 50)
+                    showDialog("Invalid X value! (0-50)");
+                else if (option.N < 0 || option.N > 50)
+                    showDialog("Invalid N value! (0-50)");
+                else if ((option.Y != 6 || option.X != 7 || option.N != 4) &&
+                        (option.player1Type == Neural || option.player2Type == Neural))
+                    showDialog("Neural Agent can only be used with default board settings!");
+                else
+                    UI::getInstance()->beginGamePlay(option.player1Type, option.player2Type,
+                                                     option.Y, option.X, option.N);
             }
             return true;
     }
 }
 
+void GameOptionsViewController::updatePanelFocus() noexcept {
+    if (currentPanel == Player1Radio)
+        setCDKRadioHighlight(player1TypeRadio, A_REVERSE);
+    else
+        setCDKRadioHighlight(player1TypeRadio, 0);
+
+    if (currentPanel == Player2Radio)
+        setCDKRadioHighlight(player2TypeRadio, A_REVERSE);
+    else
+        setCDKRadioHighlight(player2TypeRadio, 0);
+
+    drawCDKRadio(player1TypeRadio, false);
+    drawCDKRadio(player2TypeRadio, false);
+
+    if (currentPanel == BottomMenu)
+        set_menu_fore(bottomMenu, A_REVERSE);
+    else
+        set_menu_fore(bottomMenu, A_NORMAL);
+
+    wrefresh(popupWindow);
+
+    if (currentPanel == AdvancedOptions) {
+        curs_set(1);
+        pos_form_cursor(advancedOptionForm);
+    } else curs_set(0);
+}
+
+GameOptionsViewController::OptionData GameOptionsViewController::getSelectedOptions() const noexcept {
+    OptionData optionData{};
+    optionData.player1Type = static_cast<PlayerType>(getCDKRadioSelectedItem(player1TypeRadio));
+    optionData.player2Type = static_cast<PlayerType>(getCDKRadioSelectedItem(player2TypeRadio));
+    optionData.Y = atoi(field_buffer(advancedOptionFields[0], 0));
+    optionData.X = atoi(field_buffer(advancedOptionFields[1], 0));
+    optionData.N = atoi(field_buffer(advancedOptionFields[2], 0));
+
+    return optionData;
+}
+
+void GameOptionsViewController::restoreAutoSavedOptions() noexcept {
+    setCDKRadioSelectedItem(player1TypeRadio, static_cast<int>(autoSaveOptionData.player1Type));
+    setCDKRadioSelectedItem(player2TypeRadio, static_cast<int>(autoSaveOptionData.player2Type));
+    set_field_buffer(advancedOptionFields[0], 0, std::to_string(autoSaveOptionData.Y).c_str());
+    set_field_buffer(advancedOptionFields[1], 0, std::to_string(autoSaveOptionData.X).c_str());
+    set_field_buffer(advancedOptionFields[2], 0, std::to_string(autoSaveOptionData.N).c_str());
+}
+
 void GameOptionsViewController::release() noexcept {
+    handleDialogEvent(false);
+
     if (advancedOptionForm != nullptr) {
         unpost_form(advancedOptionForm);
         free_form(advancedOptionForm);

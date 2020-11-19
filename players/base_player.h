@@ -8,7 +8,8 @@
 enum PlayerType: char {
     Human = 0,
     MCTS = 1,
-    QLearn = 2
+    QLearn = 2,
+    Neural = 3
 };
 
 class BasePlayer {
@@ -24,7 +25,11 @@ protected:
 
 class ComputerPlayer : public BasePlayer {
 public:
-    explicit ComputerPlayer(const Game &currentGame, Chess myChess, int timeBudget);
+    explicit ComputerPlayer(const Game &currentGame, Chess myChess, int timeBudget): // NOLINT
+            BasePlayer(currentGame, myChess), timeBudgetPerStep(timeBudget) {
+        std::random_device rd;
+        randomEngine = std::default_random_engine{rd()};
+    }
     [[nodiscard]] bool isInteractive() const noexcept override { return false; }
 protected:
     std::chrono::milliseconds timeBudgetPerStep;
@@ -40,8 +45,11 @@ protected:
         }
     }
 
-    void startTimer() noexcept;
-    [[nodiscard]] bool checkWithinTimeLimit() const noexcept;
+    constexpr void startTimer() noexcept { startTime = std::chrono::system_clock::now(); }
+    [[nodiscard]] bool checkWithinTimeLimit() const noexcept {
+        auto currentTime = std::chrono::system_clock::now();
+        return currentTime - startTime < timeBudgetPerStep;
+    }
 
     template <class T>
     [[nodiscard]] T getRandomNumber(T lower, T upper) noexcept {

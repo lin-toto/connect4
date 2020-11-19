@@ -20,7 +20,6 @@ UI::~UI() noexcept {
     endwin();
 }
 
-#include <iostream>
 void UI::eventLoop() {
     while (!exitFlag) {
         currentViewController->checkEvent();
@@ -30,7 +29,7 @@ void UI::eventLoop() {
             render();
         }
 
-        usleep(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 

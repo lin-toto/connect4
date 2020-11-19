@@ -4,6 +4,14 @@
 
 #include "main_menu.h"
 
+MainMenuViewController::MainMenuViewController() {
+    init_pair(0xC0, COLOR_CYAN, COLOR_BLACK);
+    init_pair(0xC1, COLOR_GREEN, COLOR_BLACK);
+    init_pair(0xC2, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(0xC3, COLOR_RED, COLOR_BLACK);
+    init_pair(0xC4, COLOR_YELLOW, COLOR_BLACK);
+}
+
 void MainMenuViewController::render() {
     release();
 
@@ -13,9 +21,7 @@ void MainMenuViewController::render() {
     int logoLength = logo[0].length();
     if (x >= logoLength + logoSidePadding * 2 && y >= logoLineCount + menuHeight) {
         logoWindow = newwin(logoLineCount, logoLength, (y - menuHeight - logoLineCount) / 2, (x - logoLength) / 2);
-        for (int i = 0; i < logoLineCount; i++)
-            mvwprintw(logoWindow, i, 0, logo[i].c_str());
-        wrefresh(logoWindow);
+        paintLogo();
     }
 
     std::tie(mainMenu, mainMenuItems) = makeMenu(menuChoices, menuChoicesCount);
@@ -37,11 +43,30 @@ void MainMenuViewController::render() {
     mvprintw(y - 1, 0, "Press <UP>/<DOWN> to navigate, <ENTER> to select option");
 }
 
+void MainMenuViewController::paintLogo() noexcept {
+    if (logoWindow != nullptr) {
+        wattron(logoWindow, COLOR_PAIR(currentLogoColorCode));
+        for (int i = 0; i < logoLineCount; i++)
+            mvwprintw(logoWindow, i, 0, logo[i].c_str());
+
+        wattroff(logoWindow, COLOR_PAIR(currentLogoColorCode));
+        wrefresh(logoWindow);
+
+        currentLogoColorCode++;
+        if (currentLogoColorCode > 0xC4) currentLogoColorCode = 0xC0;
+        lastLogoUpdateTime = std::chrono::system_clock::now();
+    }
+}
+
 void MainMenuViewController::checkEvent() {
     if (menuWindow != nullptr) {
         wtimeout(menuWindow, 0);
         int c = wgetch(menuWindow);
         if (c > 0) handleKeyboardEvent(c);
+    }
+
+    if (logoWindow != nullptr) {
+        if (shouldLogoUpdate()) paintLogo();
     }
 }
 
@@ -94,4 +119,13 @@ void MainMenuViewController::release() noexcept {
         delwin(menuSubWindow);
         menuSubWindow = nullptr;
     }
+}
+
+MainMenuViewController::~MainMenuViewController() noexcept {
+    free_pair(0xC0);
+    free_pair(0xC1);
+    free_pair(0xC2);
+    free_pair(0xC3);
+    free_pair(0xC4);
+    release();
 }

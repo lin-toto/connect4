@@ -19,7 +19,7 @@ void GamePlayViewController::render() {
     int x, y;
     std::tie(x, y) = UI::getWindowSize();
     int boardWidth = sizeX * 4 + 1, boardHeight = sizeY * 2 + 1;
-    renderSidebar = x > boardWidth + boardPaddingX + sidebarWidth;
+    bool renderSidebar = x > boardWidth + boardPaddingX + sidebarWidth;
 
     if (x < boardWidth + boardPaddingX || y < boardHeight + boardPaddingY) {
         mvprintw(1, 2, "Window too small");
@@ -34,47 +34,56 @@ void GamePlayViewController::render() {
     drawBoard(boardWindow, game.getBoard(), cursorPosition);
     wrefresh(boardWindow);
 
+    // TODO: make this sidebar window
     if (renderSidebar) {
         // Draw border for sidebar.
         mvvline(0, x - sidebarWidth, ACS_VLINE, y);
 
         attron(COLOR_PAIR(0xC0));
         mvhline(y / 2 - 2, x - sidebarWidth + 1, '-', sidebarWidth - 1);
-        mvhline(y / 2 + 1, x - sidebarWidth + 1, '-', sidebarWidth - 1);
+        mvhline(y / 2 + 2, x - sidebarWidth + 1, '-', sidebarWidth - 1);
         attroff(COLOR_PAIR(0xC0));
+
+        sidebarWindow = newwin(3, sidebarWidth - 2, y / 2 - 1, x - sidebarWidth + 2);
     }
     updateInformation();
 
     mvprintw(y - 1, 0, "Press Arrow Keys to navigate the board, <ENTER> to place, <F1> to exit");
 }
 
+void GamePlayViewController::updateTimer() noexcept {
+    if (sidebarWindow != nullptr) {
+        std::ostringstream buf;
+        buf.fill('0');
+        buf << "Elapsed "
+            << std::setw(2) << currentElapsedSeconds.count() / 60 << ":"
+            << std::setw(2) << currentElapsedSeconds.count() % 60;
+        mvwaddstr(sidebarWindow, 2, 0, buf.str().c_str());
+
+        wrefresh(sidebarWindow);
+    }
+}
+
 void GamePlayViewController::updateInformation() noexcept {
-    if (boardWindow != nullptr) {
-        int boardX, boardY;
-        getbegyx(boardWindow, boardY, boardX);
-        if (boardY > 0) mvaddwstr(boardY - 1, boardX, getChessText(currentPlayer));
+    if (sidebarWindow != nullptr) {
+        wclear(sidebarWindow);
 
-        if (renderSidebar) {
-            int x, y;
-            std::tie(x, y) = UI::getWindowSize();
-
-            if (!winner.has_value()) {
-                mvaddwstr(y / 2 - 1, x - sidebarWidth + 2, getPlayerDescription(currentPlayer).c_str());
-                if (getCurrentPlayerObject()->isInteractive()) {
-                    mvaddstr(y / 2, x - sidebarWidth + 2, "Your turn  ");
-                } else {
-                    mvaddstr(y / 2, x - sidebarWidth + 2, "Thinking...");
-                }
-            } else if (drawGame) {
-                mvaddstr(y / 2 - 1, x - sidebarWidth + 2, "Draw round!");
-                mvaddstr(y / 2, x - sidebarWidth + 2, "No winner ");
+        if (winner.has_value()) {
+            mvwaddwstr(sidebarWindow,0, 0, getPlayerDescription(winner.value()).c_str());
+            mvwaddstr(sidebarWindow,2, 0, "Winner!");
+        } else if (drawGame) {
+            mvwaddstr(sidebarWindow,1, 0, "Draw round!");
+        } else {
+            mvwaddwstr(sidebarWindow, 0, 0, getPlayerDescription(currentPlayer).c_str());
+            if (getCurrentPlayerObject()->isInteractive()) {
+                mvwaddstr(sidebarWindow, 1, 0, "Your turn");
             } else {
-                mvaddwstr(y / 2 - 1, x - sidebarWidth + 2, getPlayerDescription(winner.value()).c_str());
-                mvaddstr(y / 2, x - sidebarWidth + 2, "Winner!   ");
+                mvwaddstr(sidebarWindow,1, 0, "Thinking...");
             }
+            updateTimer();
         }
 
-        refresh();
+        wrefresh(sidebarWindow);
     }
 }
 
@@ -139,38 +148,52 @@ void GamePlayViewController::checkEvent() {
         int c = wgetch(boardWindow);
         if (c > 0) handleKeyboardEvent(c);
 
-        if (currentPlacedPosition.load().has_value()) {
-            Pos pos = currentPlacedPosition.load().value();
-            if (!game.tryPlace(pos, currentPlayer)) {
-                showDialog("You cannot place at this position!");
-                currentPlacedPosition.store(std::nullopt);
-            } else {
-                tryMoveCursor(pos);
-                currentPlayer = currentPlayer == Player1 ? Player2 : Player1;
-
-                currentPlacedPosition.store(std::nullopt);
-
-                winner = game.checkWin(pos);
-                if (winner.has_value()) {
-                    std::ostringstream winnerText;
-                    winnerText << "Winner is Player " << (winner.value() == Player1 ? 1 : 2) << "!";
-                    showDialog(winnerText.str());
-                } else {
-                    drawGame = game.checkDraw();
-                    if (drawGame) {
-                        showDialog("Draw round!");
-                    } else {
-                        requestNextMove(pos);
-                    }
-                }
-
-                updateInformation();
+        if (!isBoardFinal()) {
+            auto elapsed = getElapsedTime();
+            if (elapsed != currentElapsedSeconds) {
+                currentElapsedSeconds = elapsed;
+                updateTimer();
             }
+            
+            playGame();
+        }
+    }
+}
+
+void GamePlayViewController::playGame() noexcept {
+    if (currentPlacedPosition.load().has_value()) {
+        Pos pos = currentPlacedPosition.load().value();
+        if (!game.tryPlace(pos, currentPlayer)) {
+            showDialog("You cannot place at this position!");
+            currentPlacedPosition.store(std::nullopt);
+        } else {
+            tryMoveCursor(pos); // Function also updates chess display
+
+            currentPlayer = currentPlayer == Player1 ? Player2 : Player1;
+            currentPlacedPosition.store(std::nullopt);
+
+            winner = game.checkWin(pos);
+            if (winner.has_value()) {
+                std::ostringstream winnerText;
+                winnerText << "Winner is Player " << (winner.value() == Player1 ? 1 : 2) << "!";
+                showDialog(winnerText.str());
+            } else {
+                drawGame = game.checkDraw();
+                if (drawGame) {
+                    showDialog("Draw round!");
+                } else {
+                    requestNextMove(pos);
+                }
+            }
+
+            updateInformation();
         }
     }
 }
 
 void GamePlayViewController::requestNextMove(std::optional<Pos> lastPlacedPosition) noexcept {
+    resetTimer();
+
     if (!getCurrentPlayerObject()->isInteractive()) {
         // is AI, launch new thread for calculation
         aiPlayerFuture = std::async(std::launch::async, [this, lastPlacedPosition]() { // NOLINT
@@ -191,7 +214,8 @@ void GamePlayViewController::handleKeyboardEvent(int key) noexcept {
             case 10: // Enter
                 if (handleDialogEvent()) break;
 
-                if (!winner.has_value()) currentPlacedPosition.store(cursorPosition);
+                if (!isBoardFinal())
+                    currentPlacedPosition.store(cursorPosition);
                 break;
             case KEY_UP:
             case KEY_DOWN:
@@ -218,4 +242,17 @@ void GamePlayViewController::release() noexcept {
         delwin(boardWindow);
         boardWindow = nullptr;
     }
+
+    if (sidebarWindow != nullptr) {
+        delwin(sidebarWindow);
+        sidebarWindow = nullptr;
+    }
+}
+
+GamePlayViewController::~GamePlayViewController() noexcept {
+    free_pair(0xC0);
+    free_pair(0xC1);
+    free_pair(0xD0);
+
+    release();
 }
