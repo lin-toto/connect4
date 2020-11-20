@@ -209,7 +209,7 @@ void GamePlayViewController::handleKeyboardEvent(int key) noexcept {
             default:
                 break;
             case KEY_F1:
-                if (!getCurrentPlayerObject()->isInteractive()) {
+                if (!isBoardFinal() && !getCurrentPlayerObject()->isInteractive()) {
                     // Wait for the player thread to terminate.
 
                     getCurrentPlayerObject()->requestEarlyTermination();
@@ -221,7 +221,7 @@ void GamePlayViewController::handleKeyboardEvent(int key) noexcept {
             case 10: // Enter
                 if (handleDialogEvent()) break;
 
-                if (!isBoardFinal())
+                if (!isBoardFinal() && getCurrentPlayerObject()->isInteractive())
                     currentPlacedPosition.store(cursorPosition);
                 break;
             case KEY_UP:

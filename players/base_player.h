@@ -4,6 +4,7 @@
 #include "game.h"
 #include <random>
 #include <chrono>
+#include <atomic>
 
 enum PlayerType: char {
     Human = 0,
@@ -31,7 +32,7 @@ public:
         std::random_device rd;
         randomEngine = std::default_random_engine{rd()};
     }
-    void requestEarlyTermination() noexcept override { terminateFlag = true; }
+    void requestEarlyTermination() noexcept override { terminateFlag.store(true); }
     [[nodiscard]] bool isInteractive() const noexcept override { return false; }
 protected:
     std::chrono::milliseconds timeBudgetPerStep;
@@ -39,7 +40,7 @@ protected:
 
     std::default_random_engine randomEngine;
 
-    bool terminateFlag = false;
+    std::atomic_bool terminateFlag = false;
 
     [[nodiscard]] constexpr Chess getMoveChessType(bool isCurrentPlayer) const noexcept {
         if (chess == Player1) {
@@ -52,7 +53,7 @@ protected:
     constexpr void startTimer() noexcept { startTime = std::chrono::system_clock::now(); }
     [[nodiscard]] bool checkWithinTimeLimit() const noexcept {
         auto currentTime = std::chrono::system_clock::now();
-        return !terminateFlag && currentTime - startTime < timeBudgetPerStep;
+        return !terminateFlag.load() && currentTime - startTime < timeBudgetPerStep;
     }
 
     template <class T>

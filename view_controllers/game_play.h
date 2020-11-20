@@ -25,7 +25,7 @@ private:
     const int boardPaddingX = 4, boardPaddingY = 2;
     const int sidebarWidth = 16;
 
-    const int aiTimeBudget = 10000;
+    const int aiTimeBudget = 3000;
 
     int sizeX, sizeY;
     Pos cursorPosition = Pos{0, 0};
@@ -36,7 +36,7 @@ private:
     std::optional<Chess> winner = std::nullopt;
     bool drawGame = false;
 
-    // Because std::async will block if its future is not moved,
+    // Because std::async will block if its future is destructed,
     // we need to store it although we never use it. C++ is weird
     [[maybe_unused]] std::future<void> aiPlayerFuture;
 
