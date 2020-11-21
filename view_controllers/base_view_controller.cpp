@@ -34,6 +34,8 @@ std::pair<MENU *, ITEM **> BaseViewController::makeMenu(const std::pair<std::str
 }
 
 CDKDIALOG * BaseViewController::showDialog(const std::string& message) {
+    handleDialogEvent();
+
     const char *backButtonText = "Back";
     auto messageAddr = message.c_str();
 
