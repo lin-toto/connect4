@@ -9,8 +9,7 @@
 enum PlayerType: char {
     Human = 0,
     MCTS = 1,
-    QLearn = 2,
-    Neural = 3
+    QLearn = 2
 };
 
 class BasePlayer {

@@ -205,9 +205,6 @@ bool GameOptionsViewController::handleMenuKeyboardEvent(MENU *menu, int key) noe
                     showDialog("Invalid X value! (0-50)");
                 else if (option.N < 0 || option.N > 50)
                     showDialog("Invalid N value! (0-50)");
-                else if ((option.Y != 6 || option.X != 7 || option.N != 4) &&
-                        (option.player1Type == Neural || option.player2Type == Neural))
-                    showDialog("Neural Agent can only be used with default board settings!");
                 else
                     UI::getInstance()->beginGamePlay(option.player1Type, option.player2Type,
                                                      option.Y, option.X, option.N);

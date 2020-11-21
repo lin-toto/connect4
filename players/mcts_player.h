@@ -24,7 +24,7 @@ struct Node {
     explicit Node(Pos move): currentMove(move) {}
     void addChild(Node *child);
     [[nodiscard]] Node * getChild(const Pos &move) const noexcept;
-    [[nodiscard]] Node * getBestChild(double CP) const noexcept;
+    [[nodiscard]] Node * getBestChild(double CP, bool isCurrentPlayer) const noexcept;
 };
 
 class MCTSPlayer: public ComputerPlayer {

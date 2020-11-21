@@ -30,8 +30,8 @@ private:
     const int formBoxHeight = 10, formBoxWidth = 16, formBoxPadding = 6, formBoxTopPadding = 2;
     static const int advancedOptionCount = 3;
     const std::string advancedOptionLabel[advancedOptionCount] = { "Rows Y", "Columns X", "Connect N" };
-    static const int playerTypesCount = 4;
-    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent", "Neural Agent" };
+    static const int playerTypesCount = 3;
+    const char *playerTypes[playerTypesCount] = { "Human", "MCTS Agent", "QLearn Agent" };
 
     const int menuBoxWidth = 21;
     static const int menuChoicesCount = 3;

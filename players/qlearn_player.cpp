@@ -67,7 +67,7 @@ std::optional<Pos> QLearnPlayer::chooseAction(const Game &simulationGame, bool i
         return std::nullopt;
 
     auto random = getRandomNumber<double>(0, 1);
-    if (random < randomExploreFactor || !isCurrentPlayer) {
+    if (random < randomExploreFactor) {
         return *getRandomElement(availableMoves);
     } else {
         const Board &board = simulationGame.getBoard();
@@ -75,7 +75,7 @@ std::optional<Pos> QLearnPlayer::chooseAction(const Game &simulationGame, bool i
         std::unordered_set<Pos> maxRewardMoves;
         double maxReward = std::numeric_limits<double>::lowest();
         for (auto &move: availableMoves) {
-            double reward = getRewardByStateAction(board, move);
+            double reward = getRewardByStateAction(board, move) * (isCurrentPlayer ? 1 : -1);
             if (reward > maxReward) {
                 maxRewardMoves.clear();
                 maxRewardMoves.insert(move);

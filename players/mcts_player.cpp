@@ -20,12 +20,12 @@ Node * Node::getChild(const Pos &move) const noexcept {
     return child->second.get();
 }
 
-Node * Node::getBestChild(double CP) const noexcept {
+Node * Node::getBestChild(double CP, bool isCurrentPlayer) const noexcept {
     double maxWeight = std::numeric_limits<double>::lowest();
     Node *bestChild = nullptr;
     for (auto &child : children) {
         Node *childNode = child.second.get();
-        double weight = childNode->reward / childNode->accessCount
+        double weight = (childNode->reward / childNode->accessCount) * (isCurrentPlayer ? 1 : -1)
                         + CP * sqrt(2 * log(accessCount) / childNode->accessCount);
 
         if (weight > maxWeight) {
@@ -62,7 +62,7 @@ Pos MCTSPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
         backup(node, reward);
     }
 
-    Node *bestChild = treeRoot->getBestChild(-CP);
+    Node *bestChild = treeRoot->getBestChild(-CP, true);
     auto move = bestChild->currentMove;
     if (!move.has_value())
         throw std::runtime_error("Current move must be specified");
@@ -99,10 +99,10 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
 
             double random = getRandomNumber(0, 1);
 
-            if (node->isCurrentPlayerMove || random < randomExploreFactor) {
+            if (random < randomExploreFactor) {
                 node = getRandomElement(node->children)->second.get();
             } else {
-                 node = node->getBestChild(CP);
+                 node = node->getBestChild(CP, node->isCurrentPlayerMove);
             }
 
             if (node->currentMove.has_value()) {
