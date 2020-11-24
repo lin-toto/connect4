@@ -38,7 +38,7 @@ private:
 
     void makeNewRoot(Node *node);
     Node * treePolicy(Game &game);
-    double defaultPolicy(Node *node, Game simulationGame);
+    double defaultPolicy(Node *node, Game &simulationGame);
     void backup(Node *node, double reward) noexcept;
 };
 

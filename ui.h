@@ -6,8 +6,12 @@
 #include <clocale>
 #include <thread>
 #include <chrono>
+
+#ifndef _WIN32
 #include <sys/ttycom.h>
 #include <sys/ioctl.h>
+#endif
+
 #include "view_controllers/base_view_controller.h"
 #include "view_controllers/game_play.h"
 #include "view_controller_factory.h"

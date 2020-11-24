@@ -52,12 +52,16 @@ void UI::resize() noexcept {
 }
 
 void UI::onWindowResize(int) noexcept {
+#ifndef _WIN32
     struct winsize size{};
 
     if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) { // NOLINT
         resize_term(size.ws_row, size.ws_col);
     }
     UI::getInstance()->rerenderOnNextCycle();
+#else
+    return;
+#endif
 }
 
 void UI::stateTransition(State state) {

@@ -58,11 +58,11 @@ Pos MCTSPlayer::requestNextMove(std::optional<Pos> lastOpponentMovePosition) {
     while (checkWithinTimeLimit()) {
         Game simulationGame = game;
         Node * node = treePolicy(simulationGame);
-        double reward = defaultPolicy(node, std::move(simulationGame));
+        double reward = defaultPolicy(node, simulationGame);
         backup(node, reward);
     }
 
-    Node *bestChild = treeRoot->getBestChild(-CP, true);
+    Node *bestChild = treeRoot->getBestChild(0, true);
     auto move = bestChild->currentMove;
     if (!move.has_value())
         throw std::runtime_error("Current move must be specified");
@@ -115,7 +115,7 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
     return node;
 }
 
-double MCTSPlayer::defaultPolicy(Node *node, Game simulationGame) {
+double MCTSPlayer::defaultPolicy(Node *node, Game &simulationGame) {
     if (node == nullptr)
         throw std::runtime_error("Node is nullptr");
 

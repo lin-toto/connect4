@@ -1,6 +1,5 @@
 #include "qlearn_player.h"
 
-#include <iostream>
 Pos QLearnPlayer::requestNextMove([[maybe_unused]] std::optional<Pos> lastOpponentMovePosition) {
     Game simulationGame = game;
 
