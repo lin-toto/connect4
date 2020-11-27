@@ -102,7 +102,7 @@ Node * MCTSPlayer::treePolicy(Game &simulationGame) {
             if (random < randomExploreFactor) {
                 node = getRandomElement(node->children)->second.get();
             } else {
-                 node = node->getBestChild(CP, node->isCurrentPlayerMove);
+                 node = node->getBestChild(CP, !node->isCurrentPlayerMove);
             }
 
             if (node->currentMove.has_value()) {
