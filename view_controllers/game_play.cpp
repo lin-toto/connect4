@@ -33,8 +33,7 @@ void GamePlayViewController::render() {
     keypad(boardWindow, true);
     drawBoard(boardWindow, game.getBoard(), cursorPosition);
     wrefresh(boardWindow);
-
-    // TODO: make this sidebar window
+    
     if (renderSidebar) {
         // Draw border for sidebar.
         mvvline(0, x - sidebarWidth, ACS_VLINE, y);
